@@ -154,7 +154,7 @@ typedef struct ColliderCache {
 	struct CollisionModifierData *collmd;
 } ColliderCache;
 
-struct ListBase *get_collider_cache(struct Scene *scene, struct Object *self, struct Group *group);
+struct ListBase *get_collider_cache(struct Scene *scene, struct Object *skip, struct Object *self, struct Group *group);
 void free_collider_cache(struct ListBase **colliders);
 
 /////////////////////////////////////////////////

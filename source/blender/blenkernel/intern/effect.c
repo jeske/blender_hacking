@@ -402,7 +402,7 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 		return visibility;
 
 	if (!colls)
-		colls = get_collider_cache(eff->scene, eff->ob, NULL);
+		colls = get_collider_cache(eff->scene, eff->ob, eff->ob, NULL);
 
 	if (!colls)
 		return visibility;

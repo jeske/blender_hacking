@@ -1065,7 +1065,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	else if (pa->dietime <= cfra)
 		pa->alive = PARS_DEAD;
 	else
-		pa->alive = PARS_ALIVE;
+		pa->alive = PARS_BIRTHING;
 
 	pa->state.time = cfra;
 }
@@ -2613,10 +2613,6 @@ static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRay
 		if (coll->ob == col->skip)
 			continue;
 
-		/* particles should not collide with emitter at birth */
-		if (coll->ob == col->emitter && pa->time < col->cfra && pa->time >= col->old_cfra)
-			continue;
-
 		col->current = coll->ob;
 		col->md = coll->collmd;
 		col->fac1 = (col->old_cfra - coll->collmd->time_x) / (coll->collmd->time_xnew - coll->collmd->time_x);
@@ -2627,7 +2623,17 @@ static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRay
 			        col->md->bvhtree, col->co1, ray_dir, col->radius, hit,
 			        BKE_psys_collision_neartest_cb, col, raycast_flag);
 		}
+        
 	}
+    
+    /* particles do not collide while birthing, so they don't spawn colliding with the emitter */
+    /* they are considered "birthed" once they no longer collide with anyone */
+    if (pa->alive == PARS_BIRTHING) {
+        if (hit->index >= 0)
+            hit->index = -1;  /* dont collide */
+        else
+            pa->alive = PARS_ALIVE;  /* done birthing */
+    }
 
 	return hit->index >= 0;
 }
@@ -3492,8 +3498,11 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
 	psys_update_effectors(sim);
 
+    /* hair uses cloth sim, not particle sim, so setting up colliders would be wasted work. */
 	if (part->type != PART_HAIR)
-		sim->colliders = get_collider_cache(sim->scene, sim->ob, NULL);
+        sim->colliders = get_collider_cache(sim->scene, NULL, sim->ob, NULL);
+    
+
 
 	/* initialize physics type specific stuff */
 	switch (part->phystype) {
@@ -3555,7 +3564,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		else if (birthtime <= cfra && birthtime >= psys->cfra) {
 			/* particle is born some time between this and last step*/
 			reset_particle(sim, pa, dfra*timestep, cfra);
-			pa->alive = PARS_ALIVE;
+			pa->alive = PARS_BIRTHING;
 			pa->state.time = cfra - birthtime;
 		}
 		else if (dietime < cfra) {
@@ -3570,7 +3579,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			reset_particle(sim, pa, dtime, cfra);
 		}
 
-		if (ELEM(pa->alive, PARS_ALIVE, PARS_DYING)==0 || (pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
+		if (ELEM(pa->alive, PARS_ALIVE, PARS_DYING, PARS_BIRTHING)==0 || (pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
 			pa->state.time = -1.f;
 	}
 

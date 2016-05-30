@@ -123,7 +123,7 @@ typedef struct ParticleData {
 
 	int hair_index;
 	short flag;
-	short alive;			/* the life state of a particle */
+	short alive;			/* the life state of a particle */    
 } ParticleData;
 
 typedef struct SPHFluidSettings {
@@ -556,6 +556,7 @@ typedef enum eParticleChildFlag {
 #define PARS_UNBORN			2
 #define PARS_ALIVE			3
 #define PARS_DYING			4
+#define PARS_BIRTHING       5
 
 /* ParticleDupliWeight->flag */
 #define PART_DUPLIW_CURRENT	1

@@ -535,12 +535,12 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 	return objs;
 }
 
-static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self, int level)
+static void add_collider_cache_object(ListBase **objs, Object *ob, Object *skip, int level)
 {
 	CollisionModifierData *cmd= NULL;
 	ColliderCache *col;
 
-	if (ob == self)
+	if (ob == skip)
 		return;
 
 	if (ob->pd && ob->pd->deflect)
@@ -565,19 +565,19 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 
 		/* add objects */
 		for (go= group->gobject.first; go; go= go->next)
-			add_collider_cache_object(objs, go->ob, self, level+1);
+			add_collider_cache_object(objs, go->ob, skip, level+1);
 	}
 }
 
-ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
+ListBase *get_collider_cache(Scene *scene, Object *skip, Object *self, Group *group)
 {
 	GroupObject *go;
 	ListBase *objs= NULL;
 	
-	/* add object in same layer in scene */
+	/* add objects from object group */
 	if (group) {
 		for (go= group->gobject.first; go; go= go->next)
-			add_collider_cache_object(&objs, go->ob, self, 0);
+			add_collider_cache_object(&objs, go->ob, skip, 0);
 	}
 	else {
 		Scene *sce_iter;
@@ -586,7 +586,7 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 		/* add objects in same layer in scene */
 		for (SETLOOPER(scene, sce_iter, base)) {
 			if (!self || (base->lay & self->lay))
-				add_collider_cache_object(&objs, base->object, self, 0);
+				add_collider_cache_object(&objs, base->object, skip, 0);
 
 		}
 	}

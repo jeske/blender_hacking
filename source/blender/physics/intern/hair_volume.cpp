@@ -1054,7 +1054,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd, 
 	}
 
 	/* gather colliders */
-	colliders = get_collider_cache(clmd->scene, NULL, NULL);
+	colliders = get_collider_cache(clmd->scene, NULL, NULL, NULL);
 	if (colliders && collfac > 0.0f) {
 		for (col = colliders->first; col; col = col->next) {
 			MVert *loc0 = col->collmd->x;

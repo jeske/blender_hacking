@@ -1387,6 +1387,7 @@ static void rna_def_particle(BlenderRNA *brna)
 		{PARS_DEAD, "DEAD", 0, "Dead", ""},
 		{PARS_UNBORN, "UNBORN", 0, "Unborn", ""},
 		{PARS_ALIVE, "ALIVE", 0, "Alive", ""},
+        {PARS_BIRTHING, "BIRTHING", 0, "Birthing", ""},
 		{PARS_DYING, "DYING", 0, "Dying", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
