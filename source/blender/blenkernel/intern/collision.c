@@ -468,11 +468,11 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 	return collpair;
 }
 
-static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned int *maxobj, Object *ob, Object *self, int level, unsigned int modifier_type)
+static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned int *maxobj, Object *ob, Object *skip, int level, unsigned int modifier_type)
 {
 	CollisionModifierData *cmd= NULL;
 
-	if (ob == self)
+	if (ob == skip)
 		return;
 
 	/* only get objects with collision modifier */
@@ -497,13 +497,13 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 
 		/* add objects */
 		for (go= group->gobject.first; go; go= go->next)
-			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1, modifier_type);
+			add_collision_object(objs, numobj, maxobj, go->ob, skip, level+1, modifier_type);
 	}
 }
 
 // return all collision objects in scene
-// collision object will exclude self 
-Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned int *numcollobj, unsigned int modifier_type)
+// collision object will exclude skip
+Object **get_collisionobjects(Scene *scene, Object *skip, Object *self, Group *group, unsigned int *numcollobj, unsigned int modifier_type)
 {
 	Base *base;
 	Object **objs;
@@ -516,7 +516,7 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 	if (group) {
 		/* use specified group */
 		for (go= group->gobject.first; go; go= go->next)
-			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0, modifier_type);
+			add_collision_object(&objs, &numobj, &maxobj, go->ob, skip, 0, modifier_type);
 	}
 	else {
 		Scene *sce_iter;
@@ -525,7 +525,7 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 			/* Need to check for active layers, too.
 			Otherwise this check fails if the objects are not on the same layer - DG */
 			if ((base->lay & self->lay) || (base->lay & scene->lay))
-				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0, modifier_type);
+				add_collision_object(&objs, &numobj, &maxobj, base->object, skip, 0, modifier_type);
 
 		}
 	}
@@ -687,7 +687,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, floa
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = get_collisionobjects(clmd->scene, NULL, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	
 	if (!collobjs)
 		return 0;
@@ -1213,7 +1213,7 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 	/* balance tree */
 	BLI_bvhtree_balance(cloth_bvh);
 	
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = get_collisionobjects(clmd->scene, NULL, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	if (!collobjs)
 		return 0;
 	
@@ -1336,7 +1336,7 @@ void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, 
 	/* balance tree */
 	BLI_bvhtree_balance(cloth_bvh);
 	
-	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	collobjs = get_collisionobjects(clmd->scene, NULL, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 	if (!collobjs) {
 		*r_collider_contacts = NULL;
 		*r_totcolliders = 0;

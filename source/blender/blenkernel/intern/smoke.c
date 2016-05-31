@@ -887,7 +887,7 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 	}
 
 
-	collobjs = get_collisionobjects(scene, ob, sds->coll_group, &numcollobj, eModifierType_Smoke);
+	collobjs = get_collisionobjects(scene, ob, ob, sds->coll_group, &numcollobj, eModifierType_Smoke);
 
 	// update obstacle tags in cells
 	for (collIndex = 0; collIndex < numcollobj; collIndex++)
@@ -2072,7 +2072,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 		sds->p1[2] = sds->p0[2] + sds->cell_size[2] * sds->base_res[2];
 	}
 
-	flowobjs = get_collisionobjects(scene, ob, sds->fluid_group, &numflowobj, eModifierType_Smoke);
+	flowobjs = get_collisionobjects(scene, ob, ob, sds->fluid_group, &numflowobj, eModifierType_Smoke);
 
 	/* init emission maps for each flow */
 	emaps = MEM_callocN(sizeof(struct EmissionMap) * numflowobj, "smoke_flow_maps");
