@@ -1494,6 +1494,27 @@ struct FileRuntime {
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	const char *openname = G.main->name;
+    struct wmWindowManager *wm= CTX_wm_manager(C);
+    PropertyRNA *prop;
+    
+    /* if the file is unsaved, show a confirm menu */
+    prop = RNA_struct_find_property(op->ptr, "discard_unsaved_changes");
+    if (!wm->file_saved &&
+        ( !RNA_property_is_set(op->ptr,prop) || !RNA_boolean_get(op->ptr,"discard_unsaved_changes"))) {
+        uiPopupMenu *pup;
+        uiLayout *layout;
+        
+        /* if the user confirms, we invoke operator with discard_unsaved_changes = true */
+        RNA_boolean_set(op->ptr, "discard_unsaved_changes", true);
+        
+        pup = UI_popup_menu_begin(C, "Unsaved changes exist?", ICON_NONE);
+        layout = UI_popup_menu_layout(pup);
+        uiItemFullO_ptr(layout, op->type, "Continue with Open File", ICON_NONE, op->ptr->data,
+                        WM_OP_INVOKE_REGION_WIN, 0);
+        UI_popup_menu_end(C, pup);
+
+        return OPERATOR_HANDLED;
+    }
 
 	if (CTX_wm_window(C) == NULL) {
 		/* in rare cases this could happen, when trying to invoke in background
@@ -1503,6 +1524,20 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 		return OPERATOR_CANCELLED;
 	}
 
+    /* check to see if we already have a filepath */
+    {
+        PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
+        if (RNA_property_is_set(op->ptr, prop))
+        {
+            char filepath[FILE_MAX];
+            RNA_string_get(op->ptr, "filepath", filepath);
+            if (filepath[0] != 0) {
+                /* tell the operator to execute immediately */
+                return WM_operator_call_notest(C, op);
+            }
+        }
+    }
+    
 	/* if possible, get the name of the most recently used .blend file */
 	if (G.recent_files.first) {
 		struct RecentFile *recent = G.recent_files.first;
@@ -1605,6 +1640,8 @@ static void wm_open_mainfile_ui(bContext *UNUSED(C), wmOperator *op)
 
 void WM_OT_open_mainfile(wmOperatorType *ot)
 {
+    PropertyRNA *prop;
+    
 	ot->name = "Open Blender File";
 	ot->idname = "WM_OT_open_mainfile";
 	ot->description = "Open a Blender file";
@@ -1622,6 +1659,13 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "load_ui", true, "Load UI", "Load user interface setup in the .blend file");
 	RNA_def_boolean(ot->srna, "use_scripts", true, "Trusted Source",
 	                "Allow .blend file to execute scripts automatically, default available from system preferences");
+    RNA_def_boolean(ot->srna, "discard_unsaved_changes", false, "Discard Unsaved Changes",
+                    "Continue with Open File, even if there are unsaved changes.");
+
+    prop = RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "File Path",
+                                    "Path of blend file to load");
+    RNA_def_property_flag(prop, PROP_HIDDEN);
+    
 }
 
 /** \} */

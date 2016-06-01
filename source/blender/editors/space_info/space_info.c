@@ -283,7 +283,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
 	struct RecentFile *recent;
 	uiLayout *layout = menu->layout;
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
 	if (!BLI_listbase_is_empty(&G.recent_files)) {
 		for (recent = G.recent_files.first; (recent); recent = recent->next) {
 			const char *file = BLI_path_basename(recent->filepath);

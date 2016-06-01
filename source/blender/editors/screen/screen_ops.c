@@ -4274,7 +4274,7 @@ static void open_file_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
 	RNA_string_set(drop->ptr, "filepath", drag->path);
-	drop->opcontext = WM_OP_EXEC_DEFAULT;
+	drop->opcontext = WM_OP_INVOKE_DEFAULT;
 }
 
 

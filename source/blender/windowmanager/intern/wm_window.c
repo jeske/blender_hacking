@@ -1132,7 +1132,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					
 					WM_operator_properties_create_ptr(&props_ptr, ot);
 					RNA_string_set(&props_ptr, "filepath", path);
-					WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr);
+					WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
 					WM_operator_properties_free(&props_ptr);
 					
 					CTX_wm_window_set(C, oldWindow);
